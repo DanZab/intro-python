@@ -1,4 +1,16 @@
 import sys
+import os
+
+# Support colors in terminal
+os.system("color")
+# Define ANSI color codes
+colors = {
+    "RED": "\033[31m",
+    "GREEN": "\033[32m",
+    "YELLOW": "\033[33m",
+    "BLUE": "\033[34m",
+    "RESET": "\033[0m"
+}
 
 # Define Menu items here
 # Use dictionary to use keys for easy navigation
@@ -18,10 +30,10 @@ def menu_navigation(menu_items):
 
   # Menu prompt with check for valid selection
   menu_keys = menu_items.keys()
-  menu_choice = input("Please make a selection using a number above: ")
+  menu_choice = input("Please make a selection using a number above: ").upper()
 
   while menu_choice not in menu_keys:
-    menu_choice = input("Invalid selection ({menu_choice}), please make a selection using a number above:")
+    menu_choice = input(f"Invalid selection ({colors["YELLOW"]}{menu_choice}{colors["RESET"]}), please make a selection using a number above:").upper()
 
   return menu_choice
 
@@ -32,13 +44,13 @@ match selection:
     # Count how many flashcards are available
     # If 0, prompt to manage
     # Else, choice between study all or categories
-    print()
+    print(f"You chose {colors["RED"]}1{colors["RESET"]}")
   case "2":
     # Load Manage Card menu
-    print()
+    print("You chose 2")
   case "3":
     # Load Manage Categories menu
-    print()
+    print("You chose 3")
   case "X":
     # End the program
     sys.exit()
