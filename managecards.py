@@ -176,9 +176,14 @@ def modify_flashcard(flashcard, all_categories):
 
     new_categories = list(set(assigned_categories) - set(category_list))
     existing_categories = list(set(assigned_categories) - set(new_categories))
+    removed_categories = list(set(categories) - set(assigned_categories))
 
+    print("DEBUG")
+    print(new_categories)
+    print(existing_categories)
+    print(removed_categories)
     
-    core.clear_screen()
+    #core.clear_screen()
     display_flashcard(id, front, back, assigned_categories)
     confirm = input(f"Is this correct? (Y/N): ").upper()
     if confirm == "Y":
@@ -186,25 +191,35 @@ def modify_flashcard(flashcard, all_categories):
       if len(new_categories) > 0:
         for category in new_categories:
           with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
-            cat.write(flashcard.id)
+            cat.write(id)
             cat.close
 
       # Update existing categories with id reference
       for category in existing_categories:
         with open(f"./cats/{category.replace(" ", "_")}.txt", "r", encoding="utf-8") as cat:
           cat_cards = cat.read().split(";")
-        cat_cards.append(flashcard.id)
+        if id not in cat_cards:
+          cat_cards.append(id)
         with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
-          cat.write(":".join(cat_cards))
+          cat.write(";".join(cat_cards))
           cat.close()
 
+      # Update existing categories with id reference
+      for category in removed_categories:
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "r", encoding="utf-8") as cat:
+          cat_remove = cat.read().split(";")
+        cat_remove.remove(id)
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
+          cat.write(";".join(cat_remove))
+          cat.close()
+          
       # Save card to file
       with open(f"cards\{id}.txt", "w", encoding="utf-8") as file:
         file.write(f"{front}\n")
         file.write("---\n")
         file.write(f"{back}\n")
         file.write("---\n")
-        file.write(";".join(categories))
+        file.write(";".join(assigned_categories))
         file.close()
       confirmed = True
 

@@ -66,7 +66,7 @@ def onLoad():
 
 def menu_navigation(menu_items):
   # Clear console
-  #core.clear_screen()
+  core.clear_screen()
 
   print(f"{core.colors['GREEN']}Welcome to the Flashcard Study Program!{core.colors['RESET']}\n")
 
