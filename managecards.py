@@ -2,7 +2,7 @@ import core
 import os
 from cardclasses import Flashcard
 
-def list_flashcards(flashcards):
+def list_flashcards(flashcards, categories):
   # This function displays 10 cards at a time
   showlist = True
 
@@ -43,7 +43,7 @@ def list_flashcards(flashcards):
           case "A":
             print(f"{core.colors['GREEN']}You chose to add a new flashcard{core.colors['RESET']}")
             # Call function to add a new flashcard
-            new_card = add_flashcard()
+            new_card = add_flashcard(categories)
             # Add new card to menu so it shows up
             flashcards.append(new_card)
           case "X":
@@ -51,7 +51,7 @@ def list_flashcards(flashcards):
           case _:
             print(f"You chose {core.colors['RED']}{selection}{core.colors['RESET']}")
             # show inputs to update card, then pass new values into menu array
-            updated_card = modify_flashcard(flashcards[int(selection) - 1])
+            updated_card = modify_flashcard(flashcards[int(selection) - 1], categories)
             flashcards[int(selection) - 1] = updated_card
     
 
@@ -70,6 +70,10 @@ def get_id():
 
   return new_id
 
+def get_categories():
+
+  return
+
 def display_flashcard(id, front, back, categories):
   categories_str = ", ".join(categories) if categories else "No categories assigned"
   print(f"{core.colors['YELLOW']}{id}{core.colors['RESET']}")
@@ -81,31 +85,61 @@ def display_flashcard(id, front, back, categories):
   print(f"{core.colors['BLUE']}   CARD BACK:{core.colors['RESET']}")
   print(f"{back}")
 
-def add_flashcard():
+def add_flashcard(categories):
   id = get_id()
   confirmed = False
   while confirmed == False:
     core.clear_screen()
     front = core.get_multiline_input(f"{core.colors['GREEN']}Enter the front of the flashcard:{core.colors['RESET']}")
+    
     core.clear_screen()
     back = core.get_multiline_input(f"{core.colors['GREEN']}Enter the back of the flashcard:{core.colors['RESET']}")
+    
     core.clear_screen()
-    categories = []
-    display_flashcard(id, front, back, categories)
+    print(f"{core.colors['GREEN']}Available Categories:{core.colors['YELLOW']}")
+    category_list = [category.category for category in categories]
+    for category in category_list:
+      print(category, "\n")
+    print("\n")
+    assigned_categories = input(f"{core.colors['GREEN']}Enter a comma-separated list of categories:{core.colors['RESET']}")
+    assigned_categories = assigned_categories.split(",")
+
+    new_categories = list(set(assigned_categories) - set(category_list))
+    existing_categories = list(set(assigned_categories) - set(new_categories))
+
+    core.clear_screen()
+    display_flashcard(id, front, back, " ".join(assigned_categories))
     confirm = input(f"Is this correct? (Y/N): ").upper()
     if confirm == "Y":
+      # Create files for any new category
+      if len(new_categories) > 0:
+        for category in new_categories:
+          with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
+            cat.write(id)
+            cat.close
+
+      # Update existing categories with id reference
+      for category in existing_categories:
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "r", encoding="utf-8") as cat:
+          cat_cards = cat.read().split(";")
+        cat_cards.append(id)
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
+          cat.write(";".join(cat_cards))
+          cat.close()
+
+      # Save card to file
       with open(f"cards\{id}.txt", "w", encoding="utf-8") as file:
         file.write(f"{front}\n")
         file.write("---\n")
         file.write(f"{back}\n")
         file.write("---\n")
-        file.write(";".join(categories))
+        file.write(";".join(assigned_categories))
         file.close()
       confirmed = True
 
-  return Flashcard(id, front, back, categories)
+  return Flashcard(id, front, back, assigned_categories)
 
-def modify_flashcard(flashcard):
+def modify_flashcard(flashcard, all_categories):
   id = flashcard.id
   front = flashcard.front
   back = flashcard.back
@@ -119,17 +153,52 @@ def modify_flashcard(flashcard):
     newfront = core.get_multiline_input(f"{core.colors['GREEN']}Enter the new front of the flashcard (leave blank for no changes):{core.colors['RESET']}")
     if newfront != front and newfront != "":
       front = newfront
+      
     core.clear_screen()
     print(f"{core.colors['GREEN']}Existing back of card:{core.colors['RESET']}")
     print(back, "\n")
     newback = core.get_multiline_input(f"{core.colors['GREEN']}Enter the new back of the flashcard (leave blank for no changes):{core.colors['RESET']}")
     if newback != back and newback != "":
       back = newback
+      
     core.clear_screen()
-    categories = []
-    display_flashcard(id, front, back, categories)
+    if len(flashcard.categories) > 0:
+      print(f"{core.colors['GREEN']}Current categories:{core.colors['RESET']} {",".join(flashcard.categories)}\n")
+    else:
+      print(f"{core.colors['GREEN']}Current categories:{core.colors['RESET']} None\n")
+    print(f"{core.colors['GREEN']}Available Categories:{core.colors['YELLOW']}")
+    category_list = [category.category for category in all_categories]
+    for category in category_list:
+      print(category)
+    print("\n")
+    assigned_categories = input(f"{core.colors['GREEN']}Enter a comma-separated list of categories (this will replace the existing list):{core.colors['RESET']}")
+    assigned_categories = assigned_categories.split(",")
+
+    new_categories = list(set(assigned_categories) - set(category_list))
+    existing_categories = list(set(assigned_categories) - set(new_categories))
+
+    
+    core.clear_screen()
+    display_flashcard(id, front, back, assigned_categories)
     confirm = input(f"Is this correct? (Y/N): ").upper()
     if confirm == "Y":
+      # Create files for any new category
+      if len(new_categories) > 0:
+        for category in new_categories:
+          with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
+            cat.write(flashcard.id)
+            cat.close
+
+      # Update existing categories with id reference
+      for category in existing_categories:
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "r", encoding="utf-8") as cat:
+          cat_cards = cat.read().split(";")
+        cat_cards.append(flashcard.id)
+        with open(f"./cats/{category.replace(" ", "_")}.txt", "w", encoding="utf-8") as cat:
+          cat.write(":".join(cat_cards))
+          cat.close()
+
+      # Save card to file
       with open(f"cards\{id}.txt", "w", encoding="utf-8") as file:
         file.write(f"{front}\n")
         file.write("---\n")
@@ -139,6 +208,6 @@ def modify_flashcard(flashcard):
         file.close()
       confirmed = True
 
-  return Flashcard(id, front, back, categories)
+  return Flashcard(id, front, back, assigned_categories)
 
   
