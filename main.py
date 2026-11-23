@@ -19,13 +19,7 @@ menu_items = {
   "X":"X - Exit"
 }
 
-def onLoad():
-  # Load all the flashcards and categories from files
-  card_dir = "./cards"
-  flashcards = os.listdir(card_dir)
-
-  print(f"Found {len(flashcards)} flashcards")
-
+def loadCards(card_dir):
   card_array = []
   for file in os.listdir(card_dir):
     path = os.path.join(card_dir, file)
@@ -39,6 +33,18 @@ def onLoad():
       print(f"Card content: {id} |{front} | {back} | {categories}")
 
       card_array.append(Flashcard(id, front, back, categories))
+
+  return card_array
+
+
+def onLoad():
+  # Load all the flashcards and categories from files
+  card_dir = "./cards"
+  flashcards = os.listdir(card_dir)
+
+  print(f"Found {len(flashcards)} flashcards")
+
+  card_array = loadCards(card_dir)
 
   cat_dir = "./cats"
   cats = os.listdir(cat_dir)
